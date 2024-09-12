@@ -8,7 +8,6 @@ import { getSummary, type SummaryResponse } from '../http/get-summary'
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import 'dayjs/locale/pt-br'
-import { OutlineButton } from './ui/outline-button'
 import { PendingGoals } from './pending-goals'
 
 dayjs.locale('pt-br')
