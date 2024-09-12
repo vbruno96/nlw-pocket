@@ -9,6 +9,7 @@ import { createCompletionRoute } from './routes/create-completion'
 import { getPendingGoalsRoute } from './routes/get-pending-goal'
 import { getWeekSummaryRoute } from './routes/get-week-summary'
 import fastifyCors from '@fastify/cors'
+import { deleteCompletionRoute } from './routes/delete-completion-route'
 
 const port = 6969
 
@@ -25,6 +26,7 @@ app.register(createGoalRoute)
 app.register(createCompletionRoute)
 app.register(getPendingGoalsRoute)
 app.register(getWeekSummaryRoute)
+app.register(deleteCompletionRoute)
 
 app
   .listen({

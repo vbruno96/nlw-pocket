@@ -5,14 +5,16 @@ import { InOrbitIcon } from './in-orbit-icon'
 import { Progress, ProgressIndicator } from './ui/progress-bar'
 import { Separator } from './ui/separator'
 import { getSummary, type SummaryResponse } from '../http/get-summary'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import 'dayjs/locale/pt-br'
 import { PendingGoals } from './pending-goals'
+import { deleteCompletion } from '../http/delete-completion'
 
 dayjs.locale('pt-br')
 
 export function Summary() {
+  const queryClient = useQueryClient()
   const { data: summary } = useQuery<SummaryResponse>({
     queryKey: ['summary'],
     queryFn: getSummary,
@@ -29,6 +31,12 @@ export function Summary() {
 
   const firstDayOfWeek = dayjs().startOf('week').format('D MMM')
   const lastDayOfWeek = dayjs().endOf('week').format('D MMM')
+
+  async function handleDeleteCompletion(completionId: string) {
+    await deleteCompletion(completionId)
+    queryClient.invalidateQueries({ queryKey: ['summary'] })
+    queryClient.invalidateQueries({ queryKey: ['pending-goals'] })
+  }
 
   return (
     <div className="py-10 max-w-[30rem] px-5 mx-auto flex flex-col gap-6">
@@ -89,6 +97,7 @@ export function Summary() {
                   </span>
                   <button
                     type="button"
+                    onClick={() => handleDeleteCompletion(goal.id)}
                     className="underline text-zinc-500 text-xs"
                   >
                     Desfazer
