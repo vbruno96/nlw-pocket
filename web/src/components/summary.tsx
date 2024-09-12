@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import 'dayjs/locale/pt-br'
 import { OutlineButton } from './ui/outline-button'
+import { PendingGoals } from './pending-goals'
 
 dayjs.locale('pt-br')
 
@@ -63,24 +64,7 @@ export function Summary() {
 
       <Separator />
 
-      <div className="flex flex-wrap gap-3">
-        <OutlineButton>
-          <Plus className="size-4 text-zinc-400" />
-          Meditar
-        </OutlineButton>
-        <OutlineButton>
-          <Plus className="size-4 text-zinc-400" />
-          Nadar
-        </OutlineButton>
-        <OutlineButton>
-          <Plus className="size-4 text-zinc-400" />
-          Praticar exercício
-        </OutlineButton>
-        <OutlineButton>
-          <Plus className="size-4 text-zinc-400" />
-          Me alimentar bem
-        </OutlineButton>
-      </div>
+      <PendingGoals />
 
       <div className="flex flex-col gap-6">
         <h2 className="text-xl font-medium">Sua semana</h2>
