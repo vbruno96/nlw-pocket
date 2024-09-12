@@ -4,15 +4,38 @@ import { DialogTrigger } from './ui/dialog'
 import { InOrbitIcon } from './in-orbit-icon'
 import { Progress, ProgressIndicator } from './ui/progress-bar'
 import { Separator } from './ui/separator'
+import { getSummary, type SummaryResponse } from '../http/get-summary'
+import { useQuery } from '@tanstack/react-query'
+import dayjs from 'dayjs'
+import 'dayjs/locale/pt-br'
 import { OutlineButton } from './ui/outline-button'
 
+dayjs.locale('pt-br')
+
 export function Summary() {
+  const { data: summary } = useQuery<SummaryResponse>({
+    queryKey: ['summary'],
+    queryFn: getSummary,
+    staleTime: 1000 * 60, // 60 seconds
+  })
+
+  if (!summary) {
+    return null
+  }
+
+  const completedGoalsPercent = Math.round(
+    (summary.completed * 100) / summary.total
+  )
+
+  const firstDayOfWeek = dayjs().startOf('week').format('D MMM')
+  const lastDayOfWeek = dayjs().endOf('week').format('D MMM')
+
   return (
     <div className="py-10 max-w-[30rem] px-5 mx-auto flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <InOrbitIcon />
-          <span className="text-lg font-semibold">5 a 10 de Agosto</span>
+          <span className="text-lg font-semibold capitalize">{`${firstDayOfWeek} - ${lastDayOfWeek}`}</span>
         </div>
         <DialogTrigger asChild>
           <Button size="sm">
@@ -23,16 +46,18 @@ export function Summary() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <Progress value={8} max={15}>
-          <ProgressIndicator style={{ width: '50%' }} />
+        <Progress value={summary.completed} max={summary.total}>
+          <ProgressIndicator style={{ width: `${completedGoalsPercent}%` }} />
         </Progress>
 
         <div className="flex items-center justify-between text-xs text-zinc-400">
           <span>
-            Você completou <span className="text-zinc-100">8</span> de{' '}
-            <span className="text-zinc-100">15</span> metas nessa semana
+            Você completou{' '}
+            <span className="text-zinc-100">{summary.completed}</span> de{' '}
+            <span className="text-zinc-100">{summary.total}</span> metas nessa
+            semana
           </span>
-          <span>50%</span>
+          <span>{`${completedGoalsPercent}%`}</span>
         </div>
       </div>
 
@@ -60,67 +85,36 @@ export function Summary() {
       <div className="flex flex-col gap-6">
         <h2 className="text-xl font-medium">Sua semana</h2>
 
-        <div className="flex flex-col gap-4">
-          <h3 className="font-medium">
-            Quarta-feira{' '}
-            <span className="text-zinc-400 text-xs">(11 de Setembro)</span>
-          </h3>
+        {Object.entries(summary.goalsPerDay).map(([date, goals]) => (
+          <div key={date} className="flex flex-col gap-4">
+            <h3 className="font-medium">
+              <span className="capitalize">{dayjs(date).format('dddd')}</span>{' '}
+              <span className="text-zinc-400 text-xs">{`(${dayjs(date).format('D[ de ]MMMM')})`}</span>
+            </h3>
 
-          <ul className="flex flex-col gap-3">
-            <li className="flex items-center gap-2">
-              <CheckCircle2Icon className="size-4 text-pink-500" />
-              <span className="text-sm text-zinc-400">
-                Você completou{' '}
-                <span className="text-zinc-100">"Acordar cedo"</span> às{' '}
-                <span className="text-zinc-100">08:13h</span>
-              </span>
-              <button type="button" className="underline text-zinc-500 text-xs">
-                Desfazer
-              </button>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2Icon className="size-4 text-pink-500" />
-              <span className="text-sm text-zinc-400">
-                Você completou <span className="text-zinc-100">"Meditar"</span>{' '}
-                às <span className="text-zinc-100">10:25h</span>
-              </span>
-              <button type="button" className="underline text-zinc-500 text-xs">
-                Desfazer
-              </button>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2Icon className="size-4 text-pink-500" />
-              <span className="text-sm text-zinc-400">
-                Você completou{' '}
-                <span className="text-zinc-100">"Praticar exercício"</span> às{' '}
-                <span className="text-zinc-100">17:40h</span>
-              </span>
-              <button type="button" className="underline text-zinc-500 text-xs">
-                Desfazer
-              </button>
-            </li>
-          </ul>
-        </div>
-        <div className="flex flex-col gap-4">
-          <h3 className="font-medium">
-            Terça-feira{' '}
-            <span className="text-zinc-400 text-xs">(10 de Setembro)</span>
-          </h3>
-
-          <ul className="flex flex-col gap-3">
-            <li className="flex items-center gap-2">
-              <CheckCircle2Icon className="size-4 text-pink-500" />
-              <span className="text-sm text-zinc-400">
-                Você completou{' '}
-                <span className="text-zinc-100">"Acordar cedo"</span> às{' '}
-                <span className="text-zinc-100">07:30h</span>
-              </span>
-              <button type="button" className="underline text-zinc-500 text-xs">
-                Desfazer
-              </button>
-            </li>
-          </ul>
-        </div>
+            <ul className="flex flex-col gap-3">
+              {goals.map(goal => (
+                <li key={goal.id} className="flex items-center gap-2">
+                  <CheckCircle2Icon className="size-4 text-pink-500" />
+                  <span className="text-sm text-zinc-400">
+                    Você completou{' '}
+                    <span className="text-zinc-100">{`"${goal.title}"`}</span>{' '}
+                    às{' '}
+                    <span className="text-zinc-100">
+                      {dayjs(goal.completedAt).format('HH:mm[h]')}
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    className="underline text-zinc-500 text-xs"
+                  >
+                    Desfazer
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   )
